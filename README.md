@@ -37,42 +37,6 @@ sessions/
 └── 14-scheduled-agents/              # Scheduled and automated agents
 ```
 
-## Getting Started
-
-### Prerequisites
-
-- Python 3.14 or higher
-- Basic understanding of Python programming
-- Familiarity with command-line interfaces
-- (Optional) Understanding of machine learning concepts
-
-### Installation
-
-Each session may have its own dependencies. Navigate to the specific session directory and follow its setup instructions.
-
-For sessions using `uv` (Python package manager):
-
-```bash
-cd sessions/<session-name>/
-uv sync
-```
-
-For sessions using `pip`:
-
-```bash
-cd sessions/<session-name>/
-pip install -r requirements.txt
-```
-
-### Environment Setup
-
-Many sessions require API keys or configuration. Look for `env.example` files in session directories and create your own `.env` file:
-
-```bash
-cp env.example .env
-# Edit .env with your credentials
-```
-
 ## Learning Path
 
 ### Foundation (Sessions 0-3)
