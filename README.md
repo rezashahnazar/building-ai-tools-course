@@ -1,4 +1,4 @@
-# AI Agent Tutorial
+# Building AI Tools Course
 
 A comprehensive educational project designed for **non-technical professionals** who want to understand and build AI agents. This course makes AI accessible to everyone, from fundamentals to advanced implementations, with practical applications for your work and life.
 
