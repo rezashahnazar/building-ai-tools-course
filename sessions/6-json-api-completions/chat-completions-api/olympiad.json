@@ -1,0 +1,69 @@
+[
+  {
+    "year": 2025,
+    "country": "India",
+    "students": [
+      {
+        "name": "John Doe",
+        "age": 18,
+        "city": "New York",
+        "country": "USA",
+        "score": 100
+      },
+      {
+        "name": "Jane Doe",
+        "age": 19,
+        "city": "New York",
+        "country": "USA",
+        "score": 90
+      },
+      {
+        "name": "Jim Doe",
+        "age": 20,
+        "city": "New York",
+        "country": "USA",
+        "score": 80
+      }
+    ]
+  },
+  {
+    "year": 2024,
+    "country": "India",
+    "students": [
+      {
+        "name": "John Doe",
+        "age": 18,
+        "city": "New York",
+        "country": "USA",
+        "score": 100
+      }
+    ]
+  },
+  {
+    "year": 2023,
+    "country": "India",
+    "students": [
+      {
+        "name": "John Doe",
+        "age": 18,
+        "city": "New York",
+        "country": "USA",
+        "score": 100
+      },
+      {
+        "name": "Jane Doe",
+        "age": 19,
+        "city": "New York",
+        "country": "USA",
+        "score": 90
+      },
+      {
+        "name": "Jim Doe",
+        "age": 20,
+        "city": "New York",
+        "country": "USA",
+        "score": 80
+      }
+    ]
+  }
+]
