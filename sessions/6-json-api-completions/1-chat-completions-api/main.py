@@ -16,12 +16,12 @@ response = client.chat.completions.create(
     messages=[
         {
             "role": "developer",
-            "content": """You are a helpful assistant that only answers in Persian. 
+            "content": """You are a helpful assistant that only answers in English. 
             Never in any other language , even if the user asks you to do so.""",
         },
         {
             "role": "user",
-            "content": "What is the capital of France?",
+            "content": "پایتخت ایران کجاست؟",
         },
     ]
 )
