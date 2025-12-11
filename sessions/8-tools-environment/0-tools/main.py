@@ -1,15 +1,6 @@
 from openai import OpenAI
 from dotenv import dotenv_values
 import json
-from pprint import pprint
-import logging
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
-logger = logging.getLogger(__name__)
 
 config = dotenv_values(".env")
 
@@ -22,23 +13,22 @@ client = OpenAI(
 )
 
 def ysc_calculator(a, b):
-    logger.info(f"Executing ysc_calculator with a={a}, b={b}")
     result = a + b + 5
-    logger.info(f"ysc_calculator result: {result} (calculated as {a} + {b} + 5)")
     return result
 
 messages = [
-    {
-        "role": "developer",
-        "content": """You are a helpful assistant that only answers in English. 
-        Never in any other language , even if the user asks you to do so.
-        Young Scholars Club in our game is like a country with a capital city. The capital is located at floor 2 , right next to the entrance.
-        """,
-    },
-    {
-        "role": "user",
-        "content": "In young scholars club, what is the sum of 2 and 3?",
-    }
+        {
+            "role": "developer",
+            "content": """You are a helpful assistant that only answers in English. 
+            Never in any other language , even if the user asks you to do so.
+            Young Scholars Club in our game is like a country with a capital city. 
+            The capital is located at floor 2 , right next to the entrance.
+            """,
+        },
+        {
+            "role": "user",
+            "content": "In young scholars club, what is the sum of 2 and 3?",
+        }
     ]
 
 tools = [
@@ -65,55 +55,71 @@ tools = [
         }
     ]
 
-logger.info("Making initial API call with messages and tools")
-logger.info(f"Messages: {json.dumps(messages, indent=2)}")
-logger.info(f"Tools available: {[tool['function']['name'] for tool in tools]}")
-
+# Start of Execution
+print("Starting to send the first request to the API")
 response = client.chat.completions.create(
     model="gpt-4.1-mini",
     messages=messages,
     tools=tools,
 )
+print("First request sent to the API")
 
-logger.info("API response received")
 message = response.choices[0].message
 
+print("The response of the first request is:")
+print(message)
+
+print("Checking if the response has tool calls")
 if message.tool_calls:
-    logger.info(f"Tool calls detected: {len(message.tool_calls)} tool call(s)")
+    print("The response has tool calls")
     for tool_call in message.tool_calls:
         function_name = tool_call.function.name
         function_args = json.loads(tool_call.function.arguments)
         
-        logger.info(f"Processing tool call: {function_name}")
-        logger.info(f"Tool call arguments: {function_args}")
+        print(f"The function name is: {function_name}")
+        print(f"The function arguments are: {function_args}")
+        
         
         if function_name == "ysc_calculator":
             result = ysc_calculator(function_args["a"], function_args["b"])
+            print(f"The result of the ysc_calculator function with function arguments {function_args} is: {result}")
             
-            logger.info("Appending assistant message and tool result to conversation")
             messages.append(message)
+            print("Appending the tool call response message to the messages list. the resulted messages list is now:")
+            print(messages)
+            
             tool_message = {
                 "role": "tool",
                 "tool_call_id": tool_call.id,
                 "content": str(result)
             }
             messages.append(tool_message)
-            logger.info(f"Tool message added: {tool_message}")
+            print("Appending the tool call result message to the messages list. the resulted messages list is now:")
+            print(messages)
             
-            logger.info("Making follow-up API call with tool result")
+            print("Sending the second request to the API")
             response = client.chat.completions.create(
                 model="gpt-4.1-mini",
                 messages=messages,
                 tools=tools,
             )
+            print("Second request sent to the API")
             
-            logger.info("Follow-up API response received")
             response_text = response.choices[0].message.content
-            logger.info(f"Final response: {response_text}")
+            
+            print("The response of the second request is:")
             print(response_text)
 else:
-    logger.info("No tool calls detected, using direct response")
+    print("The response does not have tool calls")
     response_text = message.content
-    logger.info(f"Response: {response_text}")
+    print("The response is:")
     print(response_text)
 
+
+
+[
+    {'role': 'developer', 'content': 'You are a helpful assistant that only answers in English. \n            Never in any other language , even if the user asks you to do so.\n            Young Scholars Club in our game is like a country with a capital city. \n            The capital is located at floor 2 , right next to the entrance.\n            '},
+    {'role': 'user', 'content': 'In young scholars club, what is the sum of 2 and 3?'}, 
+    ChatCompletionMessage(content=None, refusal=None, role='assistant', annotations=[], audio=None, function_call=None, tool_calls=[ChatCompletionMessageFunctionToolCall(id='call_2q7AreLPaQ5L8Xa5c6J8bpen', function=Function(arguments='{"a":2,"b":3}', name='ysc_calculator'), type='function')]),
+    {'role': 'tool', 'tool_call_id': 'call_2q7AreLPaQ5L8Xa5c6J8bpen', 'content': '10'}
+]
