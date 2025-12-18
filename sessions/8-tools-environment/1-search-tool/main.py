@@ -75,7 +75,8 @@ def web_search(query, num_results=5):
         response = exa_client.search(
             query,
             num_results=num_results,
-            contents={"text": True}
+            contents={"text": True},
+            category="research paper"
         )
 
         results = []
@@ -165,14 +166,34 @@ def web_search(query, num_results=5):
 messages = [  # Conversation setup with AI assistant instructions and user query
     {
         "role": "developer",
-        "content": """You are a helpful web search assistant that can search the internet for information.
-        When users ask questions, use the web_search tool to find relevant information from the web.
-        Always answer in English and provide helpful, accurate information based on search results.
-        """,
+        "content": """You are a thorough and comprehensive web search assistant that conducts extensive research before answering questions.
+
+CRITICAL INSTRUCTIONS FOR MULTIPLE ITERATIONS:
+- You MUST use the web_search tool MULTIPLE times (at least 3-5 searches, preferably more) with DIFFERENT search queries before providing your final answer
+- Each search should explore a DIFFERENT aspect, angle, or keyword variation of the user's question
+- Break down complex questions into multiple focused sub-queries
+- Use diverse search terms, synonyms, related concepts, and different phrasings
+- Search for recent developments, different perspectives, and complementary information
+- Do NOT stop after just 1-2 searches - continue searching until you have gathered comprehensive, multi-faceted information
+- Only provide your final answer when you have explored the topic thoroughly from multiple angles
+
+SEARCH STRATEGY:
+- Start with broad queries, then narrow down to specific aspects
+- Use different keyword combinations, time periods, and focus areas
+- Search for different types of sources (research papers, news, reviews, etc.)
+- Explore related topics and adjacent areas that might provide context
+
+RESPONSE REQUIREMENTS:
+- Always answer in English
+- Synthesize information from ALL your searches into a comprehensive answer
+- Cite specific sources and findings from your searches
+- Provide a well-structured, thorough response that demonstrates deep research
+
+Remember: Quality research requires multiple searches from different angles. Never settle for just one or two searches.""",
     },
     {
         "role": "user",
-        "content": "What is the latest Campbell Biology edition?",
+        "content": "What are the latest research papers about AI applications in biology sciences?",
     }
     ]
 
@@ -204,51 +225,67 @@ tools = [  # Define available tools that the AI can use
 print(f"{Colors.BRIGHT_BLUE}🤖 AI Web Search Agent starting...{Colors.RESET}")
 print(f"{Colors.YELLOW}💬 User asked: {Colors.BRIGHT_YELLOW}{messages[1]['content']}{Colors.RESET}")
 
-response = openai_client.chat.completions.create(
-    model="gpt-4o-mini",
-    messages=messages,
-    tools=tools,
-)
+max_iterations = 10
+iteration = 0
+final_response = None
 
-message = response.choices[0].message
+while iteration < max_iterations:
+    iteration += 1
+    print(f"\n{Colors.BRIGHT_MAGENTA}{'─' * 80}{Colors.RESET}")
+    print(f"{Colors.BRIGHT_MAGENTA}🔄 Iteration {iteration}/{max_iterations}{Colors.RESET}")
+    print(f"{Colors.BRIGHT_MAGENTA}{'─' * 80}{Colors.RESET}")
 
-if message.tool_calls:
-    print(f"{Colors.MAGENTA}🔧 AI is using web search tool...{Colors.RESET}")
+    response = openai_client.chat.completions.create(
+        model="gpt-4.1-mini",
+        messages=messages,
+        tools=tools,
+    )
 
-    for tool_call in message.tool_calls:
-        function_name = tool_call.function.name
-        function_args = json.loads(tool_call.function.arguments)
+    message = response.choices[0].message
 
-        if function_name == "web_search":
-            query = function_args["query"]
-            num_results = function_args.get("num_results", 5)
-            result = web_search(query, num_results)
+    if message.tool_calls:
+        print(f"{Colors.MAGENTA}🔧 AI is using web search tool...{Colors.RESET}")
 
-            messages.append(message)
-            tool_message = {
-                "role": "tool",
-                "tool_call_id": tool_call.id,
-                "content": str(result)
-            }
-            messages.append(tool_message)
+        messages.append(message)
 
-            print(f"{Colors.BLUE}🧠 AI is analyzing search results...{Colors.RESET}")
+        for tool_call in message.tool_calls:
+            function_name = tool_call.function.name
+            function_args = json.loads(tool_call.function.arguments)
 
+            if function_name == "web_search":
+                query = function_args["query"]
+                num_results = function_args.get("num_results", 5)
+                result = web_search(query, num_results)
+
+                tool_message = {
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "content": str(result)
+                }
+                messages.append(tool_message)
+
+        print(f"{Colors.BLUE}🧠 AI is analyzing search results...{Colors.RESET}")
+    else:
+        final_response = message.content
+        print(f"{Colors.BRIGHT_GREEN}✅ AI has completed all tool calls and is ready with the final answer{Colors.RESET}")
+        break
+
+if final_response is None:
+    if iteration >= max_iterations:
+        print(f"{Colors.YELLOW}⚠️  Reached maximum iterations ({max_iterations}). Getting final response...{Colors.RESET}")
+        final_message = messages[-1] if messages else None
+        if final_message and final_message.get("role") != "tool":
+            final_response = final_message.get("content", "Unable to generate final response.")
+        else:
             response = openai_client.chat.completions.create(
-                model="gpt-4.1-mini",
+                model="gpt-4o-mini",
                 messages=messages,
                 tools=tools,
             )
+            final_response = response.choices[0].message.content
 
-            response_text = response.choices[0].message.content
-            print(f"\n{Colors.BG_CYAN}{Colors.WHITE}{'='*50}{Colors.RESET}")
-            print(f"{Colors.BG_CYAN}{Colors.WHITE}{Colors.BOLD}📝 ANSWER:{Colors.RESET}")
-            print(f"{Colors.BG_CYAN}{Colors.WHITE}{'='*50}{Colors.RESET}")
-            print(f"{Colors.BRIGHT_WHITE}{response_text}{Colors.RESET}")
-else:
-    response_text = message.content
-    print(f"\n{Colors.BG_CYAN}{Colors.WHITE}{'='*50}{Colors.RESET}")
-    print(f"{Colors.BG_CYAN}{Colors.WHITE}{Colors.BOLD}📝 ANSWER:{Colors.RESET}")
-    print(f"{Colors.BG_CYAN}{Colors.WHITE}{'='*50}{Colors.RESET}")
-    print(f"{Colors.BRIGHT_WHITE}{response_text}{Colors.RESET}")
+print(f"\n{Colors.BG_CYAN}{Colors.WHITE}{'='*50}{Colors.RESET}")
+print(f"{Colors.BG_CYAN}{Colors.WHITE}{Colors.BOLD}📝 FINAL ANSWER:{Colors.RESET}")
+print(f"{Colors.BG_CYAN}{Colors.WHITE}{'='*50}{Colors.RESET}")
+print(f"{Colors.BRIGHT_WHITE}{final_response}{Colors.RESET}")
 
